@@ -74,26 +74,14 @@
             overflow-x: auto; 
             padding: 0;
         }
-        #status-light {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: #ff4d4d; /* Red - Disconnected */
-            display: inline-block;
-            margin-right: 8px;
-            transition: background-color 0.5s ease;
-        }
-        #status-light.connected {
-            background-color: #4CAF50; /* Green - Connected */
-        }
     </style>
-    <!-- Include the SignalR client library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <!-- SignalR client library has been REMOVED -->
 </head>
 <body>
     <div class="container">
         <h1>Sensor Matrix Heatmap (32x64)</h1> 
-        <p><span id="status-light" title="SignalR Connection Status"></span><span id="timestamp-display">Loading data...</span></p>
+        <!-- Status light has been REMOVED -->
+        <p><span id="timestamp-display">Loading data...</span></p>
         <div id="heatmap-container">
             <!-- The heatmap table will be generated here by JavaScript -->
         </div>
@@ -107,18 +95,14 @@
         // *************************************************
 
         let currentTimestamp = '';
-        const statusLight = document.getElementById('status-light');
+        // statusLight variable has been REMOVED
         const timestampDisplay = document.getElementById('timestamp-display');
         const heatmapContainer = document.getElementById('heatmap-container');
-        let connection = null; 
+        // connection variable has been REMOVED
         
         // --- NOTE ---
-        // If you are NOT using Azure Static Web Apps, you must uncomment
-        // and set the base URL of your deployed Function App here.
-        // const API_BASE_URL = "https://<your-function-app-name>.azurewebsites.net";
-        //
-        // If you are using Azure Static Web Apps, the '/api' prefix works automatically.
-        const API_BASE_URL = "https://bheemwebv2-daf4gghgdsgth3hq.australiaeast-01.azurewebsites.net"; // Default for Static Web Apps or local dev
+        // This is the base URL of your deployed Function App.
+        const API_BASE_URL = "https://bheemwebv2-daf4gghgdsgth3hq.australiaeast-01.azurewebsites.net";
         // --- END NOTE ---
 
 
@@ -181,14 +165,14 @@
         }
 
         /**
-         * Processes raw data (base64) from the API/SignalR into a 2D matrix
+         * Processes raw data (base64) from the API into a 2D matrix
          * and then calls buildHeatmap.
          * @param {object} data - The raw data payload { timestamp, base64 }.
          */
         function processAndBuildHeatmap(data) {
             const { timestamp, base64 } = data;
 
-            // Prevent re-rendering the same data
+            // Prevent re-rendering the same data if the timestamp hasn't changed
             if (timestamp === currentTimestamp) {
                 return;
             }
@@ -236,7 +220,8 @@
         }
 
         /**
-         * Fetches the initial heatmap data from the 'getdata' endpoint.
+         * Fetches the heatmap data from the 'getdata' endpoint.
+         * This function will now be called repeatedly by setInterval.
          */
         async function fetchData() {
             try {
@@ -249,89 +234,22 @@
                 const data = await response.json();
                 processAndBuildHeatmap(data);
             } catch (error) {
-                console.error('Error fetching data:', error);
+                // Don't log errors every 500ms, as it will flood the console
+                // console.error('Error fetching data:', error); 
                 timestampDisplay.innerText = 'Error connecting to data API.';
             }
         }
 
-        /**
-         * Starts the SignalR connection using the dedicated negotiation endpoint.
-         */
-        async function startSignalR() {
-            if (connection) return; // Already connected or connecting
-            
-            try {
-                // Step 1: Fetch connection info from the negotiation endpoint
-                const negotiateResponse = await fetch(`${API_BASE_URL}/api/negotiate`);
-                
-                if (!negotiateResponse.ok) {
-                    const rawResponseText = await negotiateResponse.text();
-                    console.error(`Negotiation failed with status ${negotiateResponse.status}: ${negotiateResponse.statusText}. Response body: "${rawResponseText}"`);
-                    throw new Error(`Negotiation failed with status ${negotiateResponse.status}: ${negotiateResponse.statusText}`);
-                }
-
-                // Handle potential empty or non-JSON responses gracefully
-                const rawResponseText = await negotiateResponse.text(); 
-                let connectionInfo;
-                try {
-                    connectionInfo = JSON.parse(rawResponseText);
-                } catch (e) {
-                    console.error(`JSON Parsing Failed (Status: ${negotiateResponse.status}). Raw response body: "${rawResponseText}"`, e);
-                    throw new Error("Failed to parse SignalR negotiation response as JSON.");
-                }
-
-                // Step 2: Build connection using the fetched URL and token
-                connection = new signalR.HubConnectionBuilder()
-                    .withUrl(connectionInfo.url, { accessTokenFactory: () => connectionInfo.accessToken })
-                    .withAutomaticReconnect()
-                    .build();
-                        
-                // Step 3: Set up event handlers
-                connection.onreconnecting(() => {
-                    statusLight.classList.remove("connected");
-                    statusLight.title = "Reconnecting...";
-                });
-
-                connection.onreconnected(() => {
-                    statusLight.classList.add("connected");
-                    statusLight.title = "Connected";
-                });
-
-                connection.onclose(error => {
-                    console.error(`SignalR connection closed unexpectedly. Error: ${error?.message || 'None'}`);
-                    statusLight.classList.remove("connected");
-                    statusLight.title = "Disconnected";
-                    if (connection) connection.stop(); 
-                    connection = null; 
-                    setTimeout(startSignalR, 5000); // Retry connection after 5s
-                });
-
-                // Step 4: Listen for 'newRawData' target from the Azure Function
-                // This string "newRawData" must match the C# code
-                connection.on("newRawData", (data) => {
-                    // This message comes from the ProcessIotHubData function
-                    processAndBuildHeatmap(data); 
-                });
-
-                // Step 5: Start the connection
-                await connection.start();
-                statusLight.classList.add("connected");
-                statusLight.title = "Connected";
-            } catch (err) {
-                console.error("SignalR Connection Failed: ", err);
-                if (connection) connection.stop(); 
-                connection = null; 
-                statusLight.classList.remove("connected");
-                statusLight.title = "Disconnected (Retrying in 5s)";
-                setTimeout(startSignalR, 5000); // Retry after 5 seconds
-            }
-        }
+        // The 'startSignalR' function has been REMOVED
 
         // --- Main Execution ---
-        // When the page is fully loaded, fetch initial data and start SignalR
+        // When the page is fully loaded, fetch initial data and
+        // start polling for new data every 500ms.
         document.addEventListener('DOMContentLoaded', () => {
-            fetchData();    // Load initial data
-            startSignalR(); // Start the real-time SignalR connection
+            fetchData(); // Load initial data
+            
+            // Set up an interval to poll for new data
+            setInterval(fetchData, 500); // 500ms = 0.5 seconds
         });
 
     </script>
