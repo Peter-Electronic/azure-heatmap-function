@@ -178,27 +178,44 @@ async function disconnect() {
 
 function handleMatrixData(data) {
     console.log('📥 Received matrix data:', data);
-    console.log('Data type:', Array.isArray(data) ? 'Array' : 'Object');
+    console.log('Data type:', typeof data, 'IsArray:', Array.isArray(data));
     
     try {
+        let parsedData = data;
+        
+        // If data is a string, parse it
+        if (typeof data === 'string') {
+            console.log('📝 Data is a string, parsing JSON...');
+            parsedData = JSON.parse(data);
+        }
+        // If data looks like a character array (object with numeric keys)
+        else if (typeof data === 'object' && !Array.isArray(data) && '0' in data && !('timestamp' in data) && !('matrix_base64' in data)) {
+            console.log('🔤 Data appears to be a character array, reconstructing string...');
+            const jsonString = Object.values(data).join('');
+            console.log('Reconstructed string:', jsonString);
+            parsedData = JSON.parse(jsonString);
+        }
+        
+        console.log('Parsed data:', parsedData);
+        
         let base64Matrix;
         let timestamp;
         
         // Handle both array and object formats
-        if (Array.isArray(data)) {
+        if (Array.isArray(parsedData)) {
             // Data is an array: [timestamp, matrix_base64, topic, ...]
             console.log('📦 Data is an array, extracting values...');
-            timestamp = data[0];
-            base64Matrix = data[1];
+            timestamp = parsedData[0];
+            base64Matrix = parsedData[1];
         } else {
             // Data is an object: {timestamp, matrix_base64, topic, ...}
             console.log('📦 Data is an object, extracting values...');
-            timestamp = data.timestamp || data.Timestamp;
-            base64Matrix = data.matrix_base64 || data.base64_matrix || data.Base64_matrix || data.Base64_Matrix;
+            timestamp = parsedData.timestamp || parsedData.Timestamp;
+            base64Matrix = parsedData.matrix_base64 || parsedData.base64_matrix || parsedData.Base64_matrix || parsedData.Base64_Matrix;
         }
         
         console.log('base64Matrix found:', !!base64Matrix);
-        console.log('base64Matrix value:', base64Matrix);
+        console.log('base64Matrix value:', base64Matrix ? base64Matrix.substring(0, 50) + '...' : 'undefined');
         
         if (!base64Matrix) {
             console.error('❌ No matrix data found');
