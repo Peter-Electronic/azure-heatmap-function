@@ -9,8 +9,8 @@ const CONFIG = {
 const state = {
     connection: null,
     isConnected: false,
-    matrixRows: 8,
-    matrixCols: 8,
+    matrixRows: 16,
+    matrixCols: 16,
     canvas: null,
     ctx: null
 };
