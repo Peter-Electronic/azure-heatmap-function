@@ -178,17 +178,30 @@ async function disconnect() {
 
 function handleMatrixData(data) {
     console.log('📥 Received matrix data:', data);
+    console.log('Data type:', Array.isArray(data) ? 'Array' : 'Object');
     
     try {
-        // Decode base64 matrix - check multiple possible property names
-        const base64Matrix = data.base64_matrix || data.Base64_matrix || data.Base64_Matrix || data.matrix_base64;
-        console.log('🔍 Looking for base64 matrix...');
-        console.log('Available keys:', Object.keys(data));
+        let base64Matrix;
+        let timestamp;
+        
+        // Handle both array and object formats
+        if (Array.isArray(data)) {
+            // Data is an array: [timestamp, matrix_base64, topic, ...]
+            console.log('📦 Data is an array, extracting values...');
+            timestamp = data[0];
+            base64Matrix = data[1];
+        } else {
+            // Data is an object: {timestamp, matrix_base64, topic, ...}
+            console.log('� Data is an object, extracting values...');
+            timestamp = data.timestamp || data.Timestamp;
+            base64Matrix = data.base64_matrix || data.Base64_matrix || data.Base64_Matrix || data.matrix_base64;
+        }
+        
         console.log('base64Matrix found:', !!base64Matrix);
         
         if (!base64Matrix) {
-            console.error('❌ No base64 matrix data found in data');
-            console.error('Data keys:', Object.keys(data));
+            console.error('❌ No matrix data found');
+            console.error('Data keys:', Array.isArray(data) ? `Array length: ${data.length}` : Object.keys(data));
             return;
         }
         
@@ -198,8 +211,8 @@ function handleMatrixData(data) {
         drawHeatmap(matrixData);
         
         // Update timestamp
-        const timestamp = data.timestamp || data.Timestamp || new Date().toISOString();
-        updateTimestamp(timestamp);
+        const displayTimestamp = timestamp || new Date().toISOString();
+        updateTimestamp(displayTimestamp);
         
         // Update stats
         updateStats(matrixData);
