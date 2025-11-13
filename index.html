@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bheem Matrix Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔥 Bheem Matrix Heatmap Dashboard</h1>
+            <div class="status-bar">
+                <div class="status-indicator" id="statusIndicator">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Disconnected</span>
+                </div>
+                <div class="timestamp" id="timestamp">--:--:--</div>
+            </div>
+        </header>
+
+        <div class="controls">
+            <div class="input-group">
+                <label for="matrixSize">Matrix Dimensions (e.g., 8x8):</label>
+                <input type="text" id="matrixSize" placeholder="8x8" value="8x8">
+                <button id="updateSize">Update Size</button>
+            </div>
+            <button id="connectBtn" class="connect-btn">Connect to SignalR</button>
+        </div>
+
+        <div class="heatmap-container">
+            <div class="heatmap-header">
+                <h2>Live Heatmap</h2>
+                <div class="legend">
+                    <span>Cold</span>
+                    <div class="legend-gradient"></div>
+                    <span>Hot</span>
+                </div>
+            </div>
+            <canvas id="heatmapCanvas"></canvas>
+            <div class="heatmap-info">
+                <div id="minTemp">Min: --°C</div>
+                <div id="maxTemp">Max: --°C</div>
+                <div id="avgTemp">Avg: --°C</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
