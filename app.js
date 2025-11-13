@@ -181,7 +181,7 @@ function handleMatrixData(data) {
     
     try {
         // Decode base64 matrix
-        const base64Matrix = data.base64_matrix || data.Base64_matrix || data.Base64_Matrix;
+        const base64Matrix = data.base64_matrix || data.Base64_matrix || data.Base64_Matrix || data.matrix_base64;
         if (!base64Matrix) {
             console.error('❌ No base64_matrix found in data');
             return;
