@@ -192,12 +192,13 @@ function handleMatrixData(data) {
             base64Matrix = data[1];
         } else {
             // Data is an object: {timestamp, matrix_base64, topic, ...}
-            console.log('� Data is an object, extracting values...');
+            console.log('📦 Data is an object, extracting values...');
             timestamp = data.timestamp || data.Timestamp;
-            base64Matrix = data.base64_matrix || data.Base64_matrix || data.Base64_Matrix || data.matrix_base64;
+            base64Matrix = data.matrix_base64 || data.base64_matrix || data.Base64_matrix || data.Base64_Matrix;
         }
         
         console.log('base64Matrix found:', !!base64Matrix);
+        console.log('base64Matrix value:', base64Matrix);
         
         if (!base64Matrix) {
             console.error('❌ No matrix data found');
