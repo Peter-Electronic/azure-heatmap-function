@@ -180,10 +180,15 @@ function handleMatrixData(data) {
     console.log('📥 Received matrix data:', data);
     
     try {
-        // Decode base64 matrix
+        // Decode base64 matrix - check multiple possible property names
         const base64Matrix = data.base64_matrix || data.Base64_matrix || data.Base64_Matrix || data.matrix_base64;
+        console.log('🔍 Looking for base64 matrix...');
+        console.log('Available keys:', Object.keys(data));
+        console.log('base64Matrix found:', !!base64Matrix);
+        
         if (!base64Matrix) {
-            console.error('❌ No base64_matrix found in data');
+            console.error('❌ No base64 matrix data found in data');
+            console.error('Data keys:', Object.keys(data));
             return;
         }
         
