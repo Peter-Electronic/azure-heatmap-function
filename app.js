@@ -41,6 +41,10 @@ function initializeApp() {
     setInterval(updateCurrentTime, 1000);
     updateCurrentTime();
     
+    // Send heartbeat every 5 minutes
+    setInterval(sendHeartbeat, 5 * 60 * 1000);
+    sendHeartbeat(); // Send initial heartbeat
+    
     console.log('✅ Dashboard initialized');
 }
 
@@ -384,5 +388,23 @@ function updateCurrentTime() {
             second: '2-digit'
         });
         document.getElementById('timestamp').textContent = now;
+    }
+}
+
+async function sendHeartbeat() {
+    try {
+        console.log('💓 Sending heartbeat...');
+        const response = await fetch(`${CONFIG.signalRUrl}/api/sendheartbeat`, {
+            method: 'POST',
+            mode: 'cors'
+        });
+        
+        if (response.ok) {
+            console.log('💓 Heartbeat sent successfully');
+        } else {
+            console.warn('💓 Heartbeat failed:', response.status);
+        }
+    } catch (error) {
+        console.error('💓 Heartbeat error:', error);
     }
 }
